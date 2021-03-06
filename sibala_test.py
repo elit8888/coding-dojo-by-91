@@ -1,5 +1,5 @@
 import unittest
-from typing import List
+from typing import List, Tuple
 from enum import IntEnum
 from collections import Counter
 from testfixtures import compare
@@ -29,13 +29,26 @@ class SUT:
     def inner_for(self, input_str: str) -> List[PlayerScore]:
         return [self.inner(s) for s in input_str.split("  ")]
 
-    def get_dice_type(self, input_score: List[int]) -> DiceType:
+    def get_score_from_normal(self, c: Counter) -> int:
+        res = 0
+        for k, v in c.items():
+            if v == 1:
+                res += k
+        return res
+
+    def get_score_from_normal2(self, c: Counter) -> int:
+        elem = list(c.keys())
+        return max(elem) * 2
+
+    def get_dice_type(self, input_score: List[int]) -> Tuple[DiceType, int]:
         c = Counter(input_score)
         if (N := len(c)) == 1:
-            return DiceType.AllOfSameKind
+            return (DiceType.AllOfSameKind, list(c.keys())[0])
         elif N == 4:
-            return DiceType.NoPoint
-        return DiceType.Normal
+            return (DiceType.NoPoint, 0)
+        elif N == 2:
+            return (DiceType.Normal, self.get_score_from_normal2(c))
+        return (DiceType.Normal, self.get_score_from_normal(c))
 
 
 class MyTestCase(unittest.TestCase):
@@ -57,21 +70,24 @@ class MyTestCase(unittest.TestCase):
         res = SUT().inner_for(input_str)
         compare(expected, res)
 
-    def test_score_to_dice_type(self):
-        input_score = [1, 1, 1, 1]
-        expected = DiceType.AllOfSameKind
-        compare(expected, SUT().get_dice_type(input_score))
-
-        input_score = [2, 2, 1, 3]
-        compare(DiceType.Normal, SUT().get_dice_type(input_score))
-
-        input_score = [1, 2, 3, 4]
-        compare(DiceType.NoPoint, SUT().get_dice_type(input_score))
-
     def test_compare_dice_type(self):
         self.assertTrue(DiceType.AllOfSameKind > DiceType.Normal)
         self.assertTrue(DiceType.AllOfSameKind > DiceType.NoPoint)
         self.assertTrue(DiceType.Normal > DiceType.NoPoint)
+
+    def test_score_to_dice_type_with_value(self):
+        input_score = [1, 1, 1, 1]
+        compare((DiceType.AllOfSameKind, 1), SUT().get_dice_type(input_score))
+
+        input_score = [2, 2, 1, 3]
+        compare((DiceType.Normal, 4), SUT().get_dice_type(input_score))
+
+        input_score = [2, 2, 6, 6]
+        compare((DiceType.Normal, 12), SUT().get_dice_type(input_score))
+
+        input_score = [1, 2, 3, 4]
+        compare((DiceType.NoPoint, 0), SUT().get_dice_type(input_score))
+
 
 if __name__ == '__main__':
     unittest.main()
