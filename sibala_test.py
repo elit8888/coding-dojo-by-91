@@ -19,6 +19,14 @@ class DiceType(IntEnum):
 
 class SUT:
     def game(self, input_str: str) -> str:
+        val = self.inner_for(input_str)
+        p1, p2 = val[0], val[1]
+        p1_val = self.get_dice_type(p1.scores)
+        p2_val = self.get_dice_type(p2.scores)
+        if p1_val[0] == p2_val[0] == DiceType.Normal:
+            p1_score, p2_score = p1_val[1], p2_val[1]
+            if p1_score > p2_score:
+                return f"{p1.name} wins. normal point: {p1_score}"
         return "Amy wins. normal point: 4"
 
     def inner(self, input_str: str) -> PlayerScore:
@@ -54,7 +62,12 @@ class SUT:
 class MyTestCase(unittest.TestCase):
     def test_amy_will_win_with_normal_4_points(self):
         input = "Amy:2 2 6 6  Lin:6 6 3 1"
-        expected = "Amy wins. normal point: 4"
+        expected = "Amy wins. normal point: 12"
+        self.assertEqual(expected, SUT().game(input))
+
+    def test_lin_will_win_with_normal_4_points(self):
+        input = "Lin:2 2 6 6  Amy:6 6 3 1"
+        expected = "Lin wins. normal point: 12"
         self.assertEqual(expected, SUT().game(input))
 
     def test_a_player_score(self):
@@ -87,6 +100,9 @@ class MyTestCase(unittest.TestCase):
 
         input_score = [1, 2, 3, 4]
         compare((DiceType.NoPoint, 0), SUT().get_dice_type(input_score))
+
+    def test_dice_normal_type_to_compare(self):
+        pass
 
 
 if __name__ == '__main__':
