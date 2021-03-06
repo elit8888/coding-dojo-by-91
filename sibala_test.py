@@ -1,5 +1,7 @@
 import unittest
 from typing import List
+from enum import Enum
+from collections import Counter
 from testfixtures import compare
 
 
@@ -7,6 +9,12 @@ class PlayerScore:
     def __init__(self, name: str, scores: List[int]):
         self.name = name
         self.scores = scores
+
+
+class DiceType(Enum):
+    AllOfSameKind = 0
+    Normal = 1
+    NoPoint = 2
 
 
 class SUT:
@@ -20,6 +28,15 @@ class SUT:
 
     def inner_for(self, input_str: str) -> List[PlayerScore]:
         return [self.inner(s) for s in input_str.split("  ")]
+
+    def get_dice_type(self, input_score: List[int]) -> DiceType:
+        c = Counter(input_score)
+        if (N := len(c)) == 1:
+            return DiceType.AllOfSameKind
+        elif N == 4:
+            return DiceType.NoPoint
+        return DiceType.Normal
+
 
 class MyTestCase(unittest.TestCase):
     def test_amy_will_win_with_normal_4_points(self):
@@ -39,6 +56,17 @@ class MyTestCase(unittest.TestCase):
         expected = [PlayerScore("Amy", [2, 2, 6, 6]), PlayerScore("Lin", [6, 6, 3, 1])]
         res = SUT().inner_for(input_str)
         compare(expected, res)
+
+    def test_score_to_dice_type(self):
+        input_score = [1, 1, 1, 1]
+        expected = DiceType.AllOfSameKind
+        compare(expected, SUT().get_dice_type(input_score))
+
+        input_score = [2, 2, 1, 3]
+        compare(DiceType.Normal, SUT().get_dice_type(input_score))
+
+        input_score = [1, 2, 3, 4]
+        compare(DiceType.NoPoint, SUT().get_dice_type(input_score))
 
 if __name__ == '__main__':
     unittest.main()
