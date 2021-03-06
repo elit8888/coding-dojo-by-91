@@ -1,6 +1,6 @@
 import unittest
 from typing import List
-from enum import Enum
+from enum import IntEnum
 from collections import Counter
 from testfixtures import compare
 
@@ -11,10 +11,10 @@ class PlayerScore:
         self.scores = scores
 
 
-class DiceType(Enum):
-    AllOfSameKind = 0
+class DiceType(IntEnum):
+    AllOfSameKind = 2
     Normal = 1
-    NoPoint = 2
+    NoPoint = 0
 
 
 class SUT:
@@ -67,6 +67,11 @@ class MyTestCase(unittest.TestCase):
 
         input_score = [1, 2, 3, 4]
         compare(DiceType.NoPoint, SUT().get_dice_type(input_score))
+
+    def test_compare_dice_type(self):
+        self.assertTrue(DiceType.AllOfSameKind > DiceType.Normal)
+        self.assertTrue(DiceType.AllOfSameKind > DiceType.NoPoint)
+        self.assertTrue(DiceType.Normal > DiceType.NoPoint)
 
 if __name__ == '__main__':
     unittest.main()
